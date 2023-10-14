@@ -25,17 +25,13 @@ app.use(morgan("postFormat"));
 app.use(cors())
 
 app.get("/info", async (req, res) => {
+  const persons = await Person.find({})
   const currentDate = new Date().toDateString();
   const currentTime = new Date().toTimeString();
-  const persons = await Person.find({});
   const info = `
-	<div>
 		<p>Phonebook has info for ${persons.length} people</p>
-	</div>
-	<div>
 		<p>${currentDate} ${currentTime}</p>
 	`;
-
   res.send(info);
 });
 
@@ -45,45 +41,27 @@ app.get("/api/persons", (req, res) => {
 	})
 });
 
-app.get("/api/persons/:id", (req, res, next) => {
-  Person.findById(req.params.id)
-    .then((person) => {
-      if (person) {
-        res.json(person);
-      } else {
-        res.status(404).end();
-      }
-    })
-    .catch((error) => next(error));
+app.get("/api/persons/:id", (req, res) => {
+  Person.findById(req.params.id).then(person => {
+		res.json(person)
+	})
 });
 
-app.delete("/api/persons/:id", (req, res, next) => {
-  Person.findByIdAndRemove(req.params.id)
-    .then(() => {
-      res.status(204).end();
-    })
-    .catch((error) => next(error));
-});
-
-app.post("/api/persons", (req, res, next) => {
+app.post("/api/persons", (req, res) => {
   const body = req.body;
 
-  if (!body.name) {
-    res.status(400).json({ error: "name missing" });
-  } else if (!body.number) {
-    res.status(400).json({ error: "number missing" });
-  } else {
-    const person = new Person({
-      name: body.name,
-      number: body.number,
-    });
+  if (body.name === undefined || body.number === undefined) {
+		return res.status(400).json({ error: 'name or number missing' })
+	}
 
-    person.save()
-			.then((savedPerson) => {
-				return savedPerson.toJSON();
-			})
-			.catch(error => next(error))
-  }
+	const person = new Person({
+		name: body.name,
+		number: body.number
+	})
+
+	person.save().then(savedPerson => {
+		res.json(savedPerson)
+	})
 });
 
 const PORT = process.env.PORT
