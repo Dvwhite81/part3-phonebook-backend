@@ -77,6 +77,7 @@ app.post("/api/persons", (req, res) => {
 	person.save().then(savedPerson => {
 		res.json(savedPerson)
 	})
+  .catch(error => next(error))
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
